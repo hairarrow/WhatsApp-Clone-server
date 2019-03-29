@@ -1,5 +1,6 @@
 import { ApolloServer, gql, PubSub } from 'apollo-server-express'
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
 import express from 'express'
 import http from 'http'
 import { users } from './db'
@@ -8,6 +9,7 @@ import schema from './schema'
 const app = express()
 
 app.use(bodyParser.json())
+app.use(cookieParser())
 
 app.get('/_ping', (req, res) => {
   res.send('pong')
