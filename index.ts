@@ -1,6 +1,5 @@
 import { ApolloServer, gql, PubSub } from 'apollo-server-express'
 import bodyParser from 'body-parser'
-import cors from 'cors'
 import express from 'express'
 import http from 'http'
 import { users } from './db'
@@ -8,7 +7,6 @@ import schema from './schema'
 
 const app = express()
 
-app.use(cors())
 app.use(bodyParser.json())
 
 app.get('/_ping', (req, res) => {
@@ -24,9 +22,11 @@ const server = new ApolloServer({
   }),
 })
 
+const origin = process.env.ORIGIN || 'http://localhost:3000'
 server.applyMiddleware({
   app,
   path: '/graphql',
+  cors: { credentials: true, origin },
 })
 
 const httpServer = http.createServer(app)
