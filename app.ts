@@ -4,8 +4,9 @@ import cookieParser from 'cookie-parser'
 import express from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { users } from './db'
+import { User, users } from './db'
 import { expiration, origin, secret } from './env'
+import { validateLength, validatePassword } from './validators'
 
 export const app = express()
 
@@ -15,6 +16,40 @@ app.use(cookieParser())
 
 app.get('/_ping', (req, res) => {
   res.send('pong')
+})
+
+app.post('/sign-up', (req, res) => {
+  const { name, username, password, passwordConfirm } = req.body
+
+  try {
+    validateLength('req.name', name, 3, 50)
+    validateLength('req.username', name, 3, 18)
+    validatePassword('req.password', password)
+
+    if (password !== passwordConfirm) {
+      throw Error("req.password and req.passwordConfirm don't match")
+    }
+
+    if (users.some(u => u.username === username)) {
+      throw Error("username already exists")
+    }
+  } catch (e) {
+    return res.status(400).send(e.message)
+  }
+
+  const passwordHash = bcrypt.hashSync(password, bcrypt.genSaltSync(8))
+
+  const user: User = {
+    id: String(users.length + 1),
+    password: passwordHash,
+    picture: '',
+    username,
+    name,
+  }
+
+  users.push(user)
+
+  res.status(200).send({ id: user.id })
 })
 
 app.post('/sign-in', (req, res) => {
